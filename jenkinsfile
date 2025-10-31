@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    environment {
+	Docker_Image = "hello_world_python:1.0"
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+               	git branch: 'main',url:'https://github.com/MananKansagra/jenkins_docker_hello_python.git'
+            }
+        }
+
+	//stage is build 
+	stage('Docker Build') {
+            steps {
+		script{
+		  if(fileExists('Dockerfile')){
+			sh "docker build -t $(env.Docker_Image) ."
+		} else {
+			error "Docker file not found in the workspace"
+		}
+
+            }
+
+        }
+
+
+
+	//stage Docker run
+	stage('Docker Run(optional)') {
+            steps {
+		sh "docker run --rm $(env.Docker_Image) "
+            }
+
+	post{
+		success{
+			echo "python container runned success full."
+		}
+		
+		failure {
+			echo "there is some error running  & building the conatainer"
+		}
+	}
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+}
+
