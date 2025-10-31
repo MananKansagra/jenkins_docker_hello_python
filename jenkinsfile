@@ -1,62 +1,47 @@
 pipeline {
     agent any
     environment {
-	Docker_Image = "hello_world_python:1.0"
+        // Use a consistent variable name, e.g., DOCKER_IMAGE, adhering to Groovy/Shell conventions
+        DOCKER_IMAGE = "hello_world_python:1.0"
     }
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-               	git branch: 'main',url:'https://github.com/MananKansagra/jenkins_docker_hello_python.git'
+                // Good practice to use sh or script block for git when using declarative pipeline
+                git branch: 'main', url:'https://github.com/MananKansagra/jenkins_docker_hello_python.git'
             }
         }
 
-	//stage is build 
-	stage('Docker Build') {
+        stage('Docker Build') {
             steps {
-		script{
-		  if(fileExists('Dockerfile')){
-			sh "docker build -t $(env.Docker_Image) ."
-		} else {
-			error "Docker file not found in the workspace"
-		}
-
+                script {
+                    // Check for Dockerfile presence
+                    if (fileExists('Dockerfile')) {
+                        // Use $DOCKER_IMAGE for Groovy/environment variables in GString interpolation ("")
+                        sh "docker build -t ${env.DOCKER_IMAGE} ."
+                    } else {
+                        // Using 'error' stops the pipeline immediately
+                        error "Dockerfile not found in the workspace."
+                    }
+                }
             }
-
         }
 
-
-
-	//stage Docker run
-	stage('Docker Run(optional)') {
+        stage('Docker Run') {
             steps {
-		sh "docker run --rm $(env.Docker_Image) "
+                // Use $DOCKER_IMAGE for Groovy/environment variables in GString interpolation ("")
+                sh "docker run --rm ${env.DOCKER_IMAGE}"
             }
 
-	post{
-		success{
-			echo "python container runned success full."
-		}
-		
-		failure {
-			echo "there is some error running  & building the conatainer"
-		}
-	}
-
+            post {
+                success {
+                    echo "Python container run completed successfully."
+                }
+                failure {
+                    echo "There was an error running or building the container."
+                }
+            }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }
-
